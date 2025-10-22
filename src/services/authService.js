@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../../config/db");
+const { addToBlacklist } = require("../services/tokenBlacklist");
 
 const login = async (username, password) => {
 	const user = await prisma.user.findUnique({
@@ -32,4 +33,10 @@ const login = async (username, password) => {
 	};
 };
 
-module.exports = { login };
+const logout = async (token) => {
+	await addToBlacklist(token);
+
+	return { message: "Logged out successfully" };
+};
+
+module.exports = { login, logout };
