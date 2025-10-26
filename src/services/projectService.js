@@ -1,3 +1,4 @@
+const { parse } = require("dotenv");
 const prisma = require("../../config/db");
 
 const getProjects = async (userId) => {
@@ -126,22 +127,57 @@ const updateProject = async (projectId, userId, projectData) => {
 };
 
 const deleteProject = async (projectId, userId) => {
-	const project = await prisma.projects.findFirst({
-		where: {
-			id: projectId,
-			user_id: userId,
-		},
-	});
+	try {
+		const parseProjectId = parseInt(projectId);
+		const project = await prisma.projects.findFirst({
+			where: {
+				id: parseProjectId,
+				user_id: userId,
+			},
+		});
 
-	if (!project) {
-		throw new Error("Project not found!");
+		if (!project) {
+			throw new Error("Project not found!");
+		}
+
+		const deleteTechRelations = await prisma.project_Tech.deleteMany({
+			where: { project_id: parseProjectId },
+		});
+
+		const deletedProject = await prisma.projects.delete({
+			where: {
+				id: parseProjectId,
+			},
+		});
+
+		return { message: "Project deleted successfully!", deletedProject };
+	} catch (error) {
+		console.error("❌ [Service] Error in deleteProject:", error);
+		console.error("❌ [Service] Error code:", error.code);
+		console.error("❌ [Service] Error message:", error.message);
+
+		if (error.meta) {
+			console.error("❌ [Service] Error meta:", error.meta);
+		}
+
+		if (error.code === "P2025") {
+			console.error("Project not found error caught in service layer.");
+
+			throw new Error("Project not found!");
+		}
+
+		if (error.code === "P2003") {
+			console.error("❌ [Service] Foreign key constraint violation!");
+			console.error(
+				"❌ [Service] This means Project_Tech deleteMany didn't work properly"
+			);
+			throw new Error(
+				"Cannot delete project due to existing technology relations"
+			);
+		}
+
+		throw error;
 	}
-
-	await prisma.projects.delete({
-		where: { id: projectId },
-	});
-
-	return { message: "Project deleted successfully!" };
 };
 
 module.exports = {

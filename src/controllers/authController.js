@@ -12,14 +12,7 @@ const loginController = async (req, res) => {
 
 const logoutController = async (req, res) => {
 	try {
-		const authHeader = req.headers["authorization"];
-		const token = authHeader && authHeader.split(" ")[1];
-
-		if (!token) {
-			return res.status(400).json({ message: "Token is missing" });
-		}
-
-		const result = await logout(token);
+		const result = await logout(req.token);
 		res.json(result);
 	} catch (error) {
 		console.error("Logout error:", error);

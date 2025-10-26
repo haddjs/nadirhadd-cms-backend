@@ -9,7 +9,7 @@ async function testConnection() {
 		await prisma.$connect();
 		console.log("Database connected!");
 	} catch (error) {
-		console.error("Something went wrong!", error);
+		console.error("Something went wrongg!", error);
 		process.exit(1);
 	}
 }

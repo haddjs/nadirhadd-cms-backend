@@ -3,6 +3,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const aboutRoutes = require("./routes/about");
 const projectRoutes = require("./routes/projects");
+const techRoutes = require("./routes/tech");
 const experienceRoutes = require("./routes/experience");
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/tech", techRoutes);
 app.use("/api/experience", experienceRoutes);
 
 app.use((err, req, res, next) => {
