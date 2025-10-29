@@ -1,5 +1,5 @@
 const {
-	getExperience,
+	getExperiences,
 	getExperienceById,
 	addExperience,
 	updateExperience,
@@ -8,7 +8,7 @@ const {
 
 const getExperienceController = async (req, res) => {
 	try {
-		const experiences = await getExperience(req.user.id);
+		const experiences = await getExperiences(req.user.id);
 		res.json(experiences);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -61,7 +61,7 @@ const deleteExperienceController = async (req, res) => {
 };
 
 module.exports = {
-	getExperience: getExperienceController,
+	getExperiences: getExperienceController,
 	getExperienceById: getExperienceByIdController,
 	addExperience: addExperienceController,
 	updateExperience: updateExperienceController,

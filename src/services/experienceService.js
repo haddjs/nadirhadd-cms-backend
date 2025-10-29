@@ -1,6 +1,6 @@
 const prisma = require("../../config/db");
 
-const getExperience = async (userId) => {
+const getExperiences = async (userId) => {
 	const experiences = await prisma.experiences.findMany({
 		where: { user_id: userId },
 		include: {
@@ -145,26 +145,38 @@ const updateExperience = async (experienceId, userId, experienceData) => {
 };
 
 const deleteExperience = async (experienceId, userId) => {
-	const experience = await prisma.experiences.findFirst({
-		where: {
-			id: experienceId,
-			user_id: userId,
-		},
-	});
+	try {
+		const parseExpId = parseInt(experienceId);
+		const experience = await prisma.experiences.findFirst({
+			where: {
+				id: parseExpId,
+				user_id: userId,
+			},
+		});
 
-	if (!experience) {
-		throw new Error("Experience not found!");
+		if (!experience) {
+			throw new Error("Experience not found!");
+		}
+
+		const deleteTechRelations = await prisma.experiences_Tech.deleteMany({
+			where: { experience_id: parseExpId },
+		});
+
+		await prisma.experiences.delete({
+			where: { id: experienceId },
+		});
+
+		return { message: "Experience deleted successfully!" };
+	} catch (error) {
+		console.error("[Backend Services] error deleting experience", error);
+
+		if (error.code === "P2025") throw new Error("Experience not found");
+		if (error.code === "P2025") throw new Error("Experience not found");
 	}
-
-	await prisma.experiences.delete({
-		where: { id: experienceId },
-	});
-
-	return { message: "Experience deleted successfully!" };
 };
 
 module.exports = {
-	getExperience,
+	getExperiences,
 	getExperienceById,
 	addExperience,
 	updateExperience,

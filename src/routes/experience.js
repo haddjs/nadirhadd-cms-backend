@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
-	getExperience,
+	getExperiences,
 	getExperienceById,
 	addExperience,
 	updateExperience,
@@ -11,7 +11,7 @@ const authenticateToken = require("../middlewares/auth");
 
 router
 	.route("/")
-	.get(authenticateToken, getExperience)
+	.get(authenticateToken, getExperiences)
 	.post(authenticateToken, addExperience);
 
 router
