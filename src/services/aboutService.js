@@ -27,29 +27,6 @@ const updateAbout = async (userId, profile_picture, summary_profile) => {
 		create: { user_id: userId, profile_picture, summary_profile },
 	});
 
-	// const existingAbout = await prisma.about.findUnique({
-	// 	where: { user_id: userId },
-	// });
-
-	// let about;
-	// if (existingAbout) {
-	// 	about = await prisma.about.update({
-	// 		where: { user_id: userId },
-	// 		data: {
-	// 			profile_picture,
-	// 			summary_profile,
-	// 		},
-	// 	});
-	// } else {
-	// 	about = await prisma.about.create({
-	// 		data: {
-	// 			user_id: userId,
-	// 			profile_picture,
-	// 			summary_profile,
-	// 		},
-	// 	});
-	// }
-
 	return about;
 };
 

@@ -1,5 +1,6 @@
 const { parse } = require("dotenv");
 const prisma = require("../../config/db");
+const { deleteImage } = require("../services/imageService");
 
 const getProjects = async (userId) => {
 	const projects = await prisma.projects.findMany({
@@ -10,6 +11,7 @@ const getProjects = async (userId) => {
 					technologies: true,
 				},
 			},
+			images: true,
 		},
 	});
 
@@ -28,6 +30,7 @@ const getProjectById = async (projectId, userId) => {
 					technologies: true,
 				},
 			},
+			images: true,
 		},
 	});
 
@@ -39,7 +42,7 @@ const getProjectById = async (projectId, userId) => {
 };
 
 const createProject = async (userId, projectData) => {
-	const { project_title, project_description, live_url, techStack } =
+	const { project_title, project_description, live_url, images, techStack } =
 		projectData;
 
 	const project = await prisma.projects.create({
@@ -71,11 +74,25 @@ const createProject = async (userId, projectData) => {
 			});
 		}
 	}
+
+	if (images && images.length > 0) {
+		for (let i = 0; i < images.length; i++) {
+			const image = images[i];
+			await prisma.project_Image.create({
+				data: {
+					project_id: project.id,
+					url: image.url,
+					public_id: image.public_id,
+				},
+			});
+		}
+	}
+
 	return getProjectById(project.id, userId);
 };
 
 const updateProject = async (projectId, userId, projectData) => {
-	const { project_title, project_description, live_url, techStack } =
+	const { project_title, project_description, live_url, images, techStack } =
 		projectData;
 
 	const project = await prisma.projects.findFirst({
@@ -123,6 +140,36 @@ const updateProject = async (projectId, userId, projectData) => {
 		}
 	}
 
+	if (images !== undefined) {
+		const existingImages = await prisma.project_Image.findMany({
+			where: { project_id: projectId },
+		});
+
+		for (const image of existingImages) {
+			try {
+				await deleteImage(image.public_id);
+			} catch (error) {
+				console.error(`Failed to delete image ${image.public_id}:`, error);
+			}
+		}
+
+		await prisma.project_Image.deleteMany({
+			where: { project_id: projectId },
+		});
+
+		if (images && images.length > 0) {
+			for (const image of images) {
+				await prisma.project_Image.create({
+					data: {
+						project_id: projectId,
+						url: image.url,
+						public_id: image.public_id,
+					},
+				});
+			}
+		}
+	}
+
 	return getProjectById(projectId, userId);
 };
 
@@ -134,11 +181,24 @@ const deleteProject = async (projectId, userId) => {
 				id: parseProjectId,
 				user_id: userId,
 			},
+			include: {
+				images: true,
+			},
 		});
 
-		if (!project) {
-			throw new Error("Project not found!");
+		if (!project) throw new Error("Project not found!");
+
+		for (const image of project.images) {
+			try {
+				await deleteImage(image.public_id);
+			} catch (error) {
+				console.error(`Failed to delete image ${image.public_id}`, error);
+			}
 		}
+
+		await prisma.project_Image.deleteMany({
+			where: { project_id: parseProjectId },
+		});
 
 		const deleteTechRelations = await prisma.project_Tech.deleteMany({
 			where: { project_id: parseProjectId },
